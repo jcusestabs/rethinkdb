@@ -51,6 +51,23 @@ app.get('/get', (req, res) => {
         }
     });
 });
+app.delete('/delete/:id', (req, res) => {
+    const { db, table } = req.query;
+    const commentId = req.params.id; // Obtiene el ID del comentario desde el URL
+
+    r.db(db).table(table).get(commentId).delete({ returnChanges: true })
+        .run(connection, (err, result) => {
+            if (err) {
+                console.error('Error deleting comment:', err);
+                res.status(500).json({ error: err.message });
+            } else if (result.deleted === 0) {
+                res.status(404).json({ message: "Comment not found." });
+            } else {
+                console.log('Comment deleted successfully:', result.changes[0].old_val);
+                res.status(200).json(result.changes[0].old_val); // Devuelve el comentario eliminado
+            }
+        });
+});
 
 app.listen(3000, () => {
     console.log('Server is running on port 3000');

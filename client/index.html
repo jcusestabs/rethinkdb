@@ -107,6 +107,48 @@
                 })
                 .catch(error => console.error('Failed to load comments:', error));
         };
+        function reloadComments() {
+    fetch(`http://localhost:3000/get?db=test&table=comentarios`)
+    .then(response => response.json())
+    .then(comments => {
+        if (Array.isArray(comments)) {
+            // Lógica para actualizar la lista de comentarios en la interfaz de usuario
+            fetch(`http://localhost:3000/get?db=test&table=${table}`)
+                .then(response => response.json())
+                .then(comments => {
+                    comments.forEach(comment => addCommentToList(comment));
+                })
+                .catch(error => console.error('Failed to load comments:', error));
+        }
+    })
+    .catch(error => console.error('Failed to load comments:', error));
+}
+
+function deleteComment(commentId) {
+    fetch(`http://localhost:3000/delete/${commentId}?db=test&table=comentarios`, {
+        method: 'DELETE'
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Deleted comment:', data);
+        // Recargar los comentarios después de eliminar uno
+        loadComments();
+    })
+    .catch(error => console.error('Error deleting comment:', error));
+}
+
+function loadComments() {
+    fetch(`http://localhost:3000/get?db=test&table=comentarios`)
+        .then(response => response.json())
+        .then(comments => {
+            document.getElementById('comments-list').innerHTML = ''; // Limpiar la lista de comentarios antes de cargar los nuevos
+            comments.forEach(comment => addCommentToList(comment));
+        })
+        .catch(error => console.error('Failed to load comments:', error));
+}
+
+// Llama a la función loadComments() cuando se cargue la página inicialmente
+window.onload = loadComments;
 
         function addCommentToList(comment) {
             const commentsList = document.getElementById('comments-list');
@@ -116,9 +158,11 @@
                 <div class="comment-name">${comment.name}</div>
                 <div class="comment-date">${new Date(comment.date).toLocaleString()}</div>
                 <div class="comment-message">${comment.message}</div>
+                <button class="btn btn-danger" onclick="deleteComment('${comment.id}')">Eliminar</button>
             `;
             commentsList.appendChild(commentElement);
         }
+    
     </script>
 </body>
 </html>
