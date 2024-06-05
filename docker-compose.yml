@@ -1,0 +1,25 @@
+version: '3'
+services:
+  rethinkdb:
+    image: rethinkdb
+    ports:
+      - "8080:8080"
+      - "28015:28015"
+      - "29015:29015"
+
+  server:
+    build: ./server
+    volumes:
+      - ./server:/usr/src/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - rethinkdb
+
+  client:
+    image: nginx:alpine
+    volumes:
+      - ./client:/usr/share/nginx/html:ro
+    ports:
+      - "8081:80"
+

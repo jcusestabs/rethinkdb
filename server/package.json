@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "rethinkdb": "^2.4.2",
+    "rethinkdb-websocket-server": "^0.6.0"
+  }
+}
