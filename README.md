@@ -7,6 +7,8 @@ Este es un proyecto de una base de datos en tiempo real que utiliza tecnologías
 1. Clona este repositorio en tu máquina local usando Git.
 2. Asegúrate de tener Node.js y npm instalados en tu sistema.
 3. Instala las dependencias del servidor ejecutando `npm install` dentro de la carpeta del servidor (`server/`).
+4. ademas de instalar docker-compose
+5. Ejecutar el comando 'docker-compose up --build'
 
 ## Configuración
 
