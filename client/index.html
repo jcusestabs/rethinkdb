@@ -72,6 +72,8 @@
                 addCommentToList(comment);
             }
         };
+        
+
 
         document.getElementById('form').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -90,6 +92,7 @@
                     alert('Failed to insert data: ' + data.error); // Mostrar el mensaje de error recibido del servidor
                 } else {
                     addCommentToList({ name, message, date: new Date() });
+                    location.reload(); // Recargar la página después de la actualización
                 }
             })
             .catch(error => {
