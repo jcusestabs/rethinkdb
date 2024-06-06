@@ -69,6 +69,45 @@ app.delete('/delete/:id', (req, res) => {
         });
 });
 
+// Nueva ruta para actualizar comentarios
+app.put('/update', (req, res) => {
+    const { db, table, data } = req.body;
+    const { id, ...updateData } = data;
+    
+    r.db(db).table(table).get(id).replace({ ...updateData, id })
+        .run(connection, (err, result) => {
+            if (err) {
+                console.error('Error updating data:', err);
+                res.status(500).json({ error: err.message });
+            } else if (result.replaced === 0) {
+                res.status(404).json({ message: "Comment not found." });
+            } else {
+                console.log('Data updated successfully:', result);
+                res.status(200).json({ success: true });
+            }
+        });
+});
+
+
+// Updated route for updating comments
+app.put('/update', (req, res) => {
+    const { db, table, data } = req.body;
+    const { id, ...updateData } = data;
+
+    r.db(db).table(table).get(id).update(updateData, { return_changes: true })
+        .run(connection, (err, result) => {
+            if (err) {
+                console.error('Error updating data:', err);
+                res.status(500).json({ error: err.message });
+            } else if (result.replaced === 0) {
+                res.status(404).json({ message: "Comment not found or no changes made." });
+            } else {
+                console.log('Data updated successfully:', result);
+                res.status(200).json({ success: true, changes: result.changes });
+            }
+        });
+});
+
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
 });

@@ -53,16 +53,16 @@
     </div>
 
     <script>
-        const connection = new WebSocket('ws://localhost:8080');
+        const connection = new WebSocket('ws://localhost:3000');
         const table = 'comentarios'; // Nombre de la tabla actualizado
 
         connection.onopen = function() {
-            console.log('WebSocket connected');
+            //console.log('WebSocket connected');
             connection.send(JSON.stringify({ type: 'subscribe', query: { table } }));
         };
 
         connection.onerror = function(error) {
-            console.error('WebSocket error:', error);
+            //console.error('WebSocket error:', error);
         };
 
         connection.onmessage = function(event) {
@@ -159,9 +159,31 @@ window.onload = loadComments;
                 <div class="comment-date">${new Date(comment.date).toLocaleString()}</div>
                 <div class="comment-message">${comment.message}</div>
                 <button class="btn btn-danger" onclick="deleteComment('${comment.id}')">Eliminar</button>
+                <button class="btn btn-primary edit-button" data-id="${comment.id}">Editar</button>
             `;
             commentsList.appendChild(commentElement);
-        }
+    
+    // Add event listener for the edit button
+    const editButton = commentElement.querySelector('.edit-button');
+    editButton.addEventListener('click', function() {
+        const commentId = this.getAttribute('data-id');
+        editComment(commentId);  // Call the editComment function when the edit button is clicked
+    });
+}
+function editComment(commentId) {
+        window.location.href = `edit.html?id=${commentId}`; // Redirect to edit.html with the comment ID
+    }
+
+
+        function loadComments() {
+        fetch(`http://localhost:3000/get?db=test&table=comentarios`)
+            .then(response => response.json())
+            .then(comments => {
+                document.getElementById('comments-list').innerHTML = ''; // Clear the comment list before loading new ones
+                comments.forEach(comment => addCommentToList(comment));
+            })
+            .catch(error => console.error('Failed to load comments:', error));
+    }
     
     </script>
 </body>
