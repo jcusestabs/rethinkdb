@@ -1,13 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-const r = require('rethinkdb');
+const rethinkdb = require('rethinkdb');
 const app = express();
 
 app.use(express.json());
 app.use(cors());
 
 let connection = null;
-r.connect({ host: 'rethinkdb', port: 28015 }, async (err, conn) => {
+rethinkdb.connect({ host: 'rethinkdb', port: 28015 }, async (err, conn) => {
     if (err) throw err;
     connection = conn;
     // Asegurarse de que la base de datos y la tabla existan
@@ -15,19 +15,19 @@ r.connect({ host: 'rethinkdb', port: 28015 }, async (err, conn) => {
 });
 
 async function ensureDbAndTable(conn, dbName, tableName) {
-    const dbExists = await r.dbList().contains(dbName).run(conn);
+    const dbExists = await rethinkdb.dbList().contains(dbName).run(conn);
     if (!dbExists) {
-        await r.dbCreate(dbName).run(conn);
+        await rethinkdb.dbCreate(dbName).run(conn);
     }
-    const tableExists = await r.db(dbName).tableList().contains(tableName).run(conn);
+    const tableExists = await rethinkdb.db(dbName).tableList().contains(tableName).run(conn);
     if (!tableExists) {
-        await r.db(dbName).tableCreate(tableName).run(conn);
+        await rethinkdb.db(dbName).tableCreate(tableName).run(conn);
     }
 }
 
 app.post('/insert', (req, res) => {
     const { db, table, data } = req.body;
-    r.db(db).table(table).insert(data)
+    rethinkdb.db(db).table(table).insert(data)
     .run(connection, (err, result) => {
         if (err) {
             console.error('Error inserting data:', err);
@@ -41,7 +41,7 @@ app.post('/insert', (req, res) => {
 
 app.get('/get', (req, res) => {
     const { db, table } = req.query;
-    r.db(db).table(table).run(connection, (err, cursor) => {
+    rethinkdb.db(db).table(table).run(connection, (err, cursor) => {
         if (err) res.status(500).send(err);
         else {
             cursor.toArray((err, result) => {
@@ -55,7 +55,7 @@ app.delete('/delete/:id', (req, res) => {
     const { db, table } = req.query;
     const commentId = req.params.id; // Obtiene el ID del comentario desde el URL
 
-    r.db(db).table(table).get(commentId).delete({ returnChanges: true })
+    rethinkdb.db(db).table(table).get(commentId).delete({ returnChanges: true })
         .run(connection, (err, result) => {
             if (err) {
                 console.error('Error deleting comment:', err);
@@ -74,7 +74,7 @@ app.put('/update', (req, res) => {
     const { db, table, data } = req.body;
     const { id, ...updateData } = data;
     
-    r.db(db).table(table).get(id).replace({ ...updateData, id })
+    rethinkdb.db(db).table(table).get(id).replace({ ...updateData, id })
         .run(connection, (err, result) => {
             if (err) {
                 console.error('Error updating data:', err);
@@ -94,7 +94,7 @@ app.put('/update', (req, res) => {
     const { db, table, data } = req.body;
     const { id, ...updateData } = data;
 
-    r.db(db).table(table).get(id).update(updateData, { return_changes: true })
+    rethinkdb.db(db).table(table).get(id).update(updateData, { return_changes: true })
         .run(connection, (err, result) => {
             if (err) {
                 console.error('Error updating data:', err);
