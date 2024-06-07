@@ -3,17 +3,21 @@ const cors = require('cors');
 const r = require('rethinkdb');
 const app = express();
 
+// Middleware para parsear JSON y habilitar CORS
 app.use(express.json());
 app.use(cors());
 
+// Variable para almacenar la conexión a RethinkDB
 let connection = null;
+
+// Conectar a RethinkDB y asegurar que la base de datos y la tabla existan
 r.connect({ host: 'rethinkdb', port: 28015 }, async (err, conn) => {
     if (err) throw err;
     connection = conn;
-    // Asegurarse de que la base de datos y la tabla existan
     await ensureDbAndTable(conn, 'test', 'comentarios');
 });
 
+// Función para asegurar que la base de datos y la tabla existan
 async function ensureDbAndTable(conn, dbName, tableName) {
     const dbExists = await r.dbList().contains(dbName).run(conn);
     if (!dbExists) {
@@ -25,20 +29,22 @@ async function ensureDbAndTable(conn, dbName, tableName) {
     }
 }
 
+// Ruta para insertar datos en la base de datos
 app.post('/insert', (req, res) => {
     const { db, table, data } = req.body;
     r.db(db).table(table).insert(data)
     .run(connection, (err, result) => {
         if (err) {
             console.error('Error inserting data:', err);
-            res.status(500).json({ error: err.message }); // Respond with error message
+            res.status(500).json({ error: err.message }); // Responder con mensaje de error
         } else {
             console.log('Data inserted successfully:', result);
-            res.status(200).json({ success: true }); // Respond with success message
+            res.status(200).json({ success: true }); // Responder con mensaje de éxito
         }
     });
 });
 
+// Ruta para obtener datos de la base de datos
 app.get('/get', (req, res) => {
     const { db, table } = req.query;
     r.db(db).table(table).run(connection, (err, cursor) => {
@@ -51,6 +57,8 @@ app.get('/get', (req, res) => {
         }
     });
 });
+
+// Ruta para eliminar datos de la base de datos por ID
 app.delete('/delete/:id', (req, res) => {
     const { db, table } = req.query;
     const commentId = req.params.id; // Obtiene el ID del comentario desde el URL
@@ -69,27 +77,7 @@ app.delete('/delete/:id', (req, res) => {
         });
 });
 
-// Nueva ruta para actualizar comentarios
-app.put('/update', (req, res) => {
-    const { db, table, data } = req.body;
-    const { id, ...updateData } = data;
-    
-    r.db(db).table(table).get(id).replace({ ...updateData, id })
-        .run(connection, (err, result) => {
-            if (err) {
-                console.error('Error updating data:', err);
-                res.status(500).json({ error: err.message });
-            } else if (result.replaced === 0) {
-                res.status(404).json({ message: "Comment not found." });
-            } else {
-                console.log('Data updated successfully:', result);
-                res.status(200).json({ success: true });
-            }
-        });
-});
-
-
-// Updated route for updating comments
+// Ruta para actualizar comentarios
 app.put('/update', (req, res) => {
     const { db, table, data } = req.body;
     const { id, ...updateData } = data;
@@ -107,7 +95,7 @@ app.put('/update', (req, res) => {
             }
         });
 });
-
+// Iniciar el servidor en el puerto 3000
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
 });
