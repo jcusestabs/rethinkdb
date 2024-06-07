@@ -1,10 +1,35 @@
 const express = require('express');
+const http = require('http');
 const cors = require('cors');
 const rethinkdb = require('rethinkdb');
+const WebSocket = require('ws');
 const app = express();
+const wsApp = express();
 
 app.use(express.json());
 app.use(cors());
+
+const webSocketServer = http.createServer(wsApp);
+const wss = new WebSocket.Server({ server: webSocketServer });
+
+wss.on('connection', ws => {
+    ws.uid = Math.random().toString(36);
+    console.log('WebSocket connection established with user: ', ws.uid);
+    ws.on('message', message => {
+        console.log('Received message:', message.stringify.JSON);
+    });
+    ws.on('close', () => {
+        console.log('WebSocket connection closed');
+    });
+});
+
+const broadcast = (data) => {
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(data));
+        }
+    });
+}
 
 let connection = null;
 
@@ -13,6 +38,7 @@ rethinkdb.connect({ host: 'rethinkdb', port: 28015 }, async (err, conn) => {
     connection = conn;
     // Asegurarse de que la base de datos y la tabla existan
     await ensureDbAndTable(conn, 'test', 'comentarios');
+    monitorChanges(conn);//connection to websocket changes
 });
 
 async function ensureDbAndTable(conn, dbName, tableName) {
@@ -90,6 +116,27 @@ app.put('/update', (req, res) => {
         });
 });
 
+const monitorChanges = async (conn) => {
+    rethinkdb.db('test').table('comentarios').wait().run(conn, () => {
+        console.log('table ready');
+        rethinkdb.db('test').table('comentarios').changes().run(conn, (err, cursor) => {
+            if (err) throw err;
+            cursor.each((err, row) => {
+                if (err) throw err;
+                console.log('Change detected:', row);
+                broadcast(row);
+            });
+            console.log('monitoring changes to broadcast...')
+        });
+    })
+};
+
+
+
 app.listen(3000, () => {
     console.log('Server is running on port 3000');
 });
+
+webSocketServer.listen(3001, () => {
+    console.log('WebSocket server is running on port 3001');
+})
