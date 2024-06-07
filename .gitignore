@@ -1,0 +1,2 @@
+#git ignore for node modules everywhere
+server/node_modules
