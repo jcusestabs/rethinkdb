@@ -6,9 +6,11 @@ const WebSocket = require('ws');
 const app = express();
 const wsApp = express();
 
+// Middleware para parsear JSON y habilitar CORS
 app.use(express.json());
 app.use(cors());
 
+<<<<<<< HEAD
 const webSocketServer = http.createServer(wsApp);
 const wss = new WebSocket.Server({ server: webSocketServer });
 
@@ -34,13 +36,20 @@ const broadcast = (data) => {
 let connection = null;
 
 rethinkdb.connect({ host: 'rethinkdb', port: 28015 }, async (err, conn) => {
+=======
+// Variable para almacenar la conexión a RethinkDB
+let connection = null;
+
+// Conectar a RethinkDB y asegurar que la base de datos y la tabla existan
+r.connect({ host: 'rethinkdb', port: 28015 }, async (err, conn) => {
+>>>>>>> d272f920db27231ce00b6dac66964031aaf8af9a
     if (err) throw err;
     connection = conn;
-    // Asegurarse de que la base de datos y la tabla existan
     await ensureDbAndTable(conn, 'test', 'comentarios');
     monitorChanges(conn);//connection to websocket changes
 });
 
+// Función para asegurar que la base de datos y la tabla existan
 async function ensureDbAndTable(conn, dbName, tableName) {
     const dbExists = await rethinkdb.dbList().contains(dbName).run(conn);
     if (!dbExists) {
@@ -52,8 +61,10 @@ async function ensureDbAndTable(conn, dbName, tableName) {
     }
 }
 
+// Ruta para insertar datos en la base de datos
 app.post('/insert', (req, res) => {
     const { db, table, data } = req.body;
+<<<<<<< HEAD
     rethinkdb.db(db).table(table).insert(data)
         .run(connection, (err, result) => {
             if (err) {
@@ -64,8 +75,21 @@ app.post('/insert', (req, res) => {
                 res.status(200).json({ success: true }); // Respond with success message
             }
         });
+=======
+    r.db(db).table(table).insert(data)
+    .run(connection, (err, result) => {
+        if (err) {
+            console.error('Error inserting data:', err);
+            res.status(500).json({ error: err.message }); // Responder con mensaje de error
+        } else {
+            console.log('Data inserted successfully:', result);
+            res.status(200).json({ success: true }); // Responder con mensaje de éxito
+        }
+    });
+>>>>>>> d272f920db27231ce00b6dac66964031aaf8af9a
 });
 
+// Ruta para obtener datos de la base de datos
 app.get('/get', (req, res) => {
     const { db, table } = req.query;
     rethinkdb.db(db).table(table).run(connection, (err, cursor) => {

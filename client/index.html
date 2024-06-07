@@ -76,9 +76,11 @@
 
       connection.onmessage = function (event) {
         const data = JSON.parse(event.data);
-        if(data.new_val && !data.old_val) addCommentToList(data.new_val);
-        else if( data.new_val && data.old_val) updateCommentOnList(data.old_val.date, data.new_val);
-        else if(data.old_val && !data.new_val) deleteCommentFromList(data.old_val.date);
+        if (data.new_val && !data.old_val) addCommentToList(data.new_val);
+        else if (data.new_val && data.old_val)
+          updateCommentOnList(data.old_val.date, data.new_val);
+        else if (data.old_val && !data.new_val)
+          deleteCommentFromList(data.old_val.date);
       };
 
       function deleteComment(commentId) {
@@ -103,7 +105,7 @@
       function addCommentToList(comment) {
         const commentsList = document.getElementById("comments-list");
         const commentElement = document.createElement("li");
-        commentElement.setAttribute('id', comment.date);
+        commentElement.setAttribute("id", comment.date);
         commentElement.classList.add("comment-box");
         commentElement.innerHTML = `
                 <div class="comment-name">${comment.name}</div>
@@ -136,10 +138,16 @@
       function updateCommentOnList(oldCommentId, newComment) {
         document.getElementById(oldCommentId).innerHTML = `
             <div class="comment-name">${newComment.name}</div>
-            <div class="comment-date">${new Date(newComment.date).toLocaleString()}</div>
+            <div class="comment-date">${new Date(
+              newComment.date
+            ).toLocaleString()}</div>
             <div class="comment-message">${newComment.message}</div>
-            <button class="btn btn-danger" onclick="deleteComment('${newComment.id}')">Eliminar</button>
-            <button class="btn btn-primary edit-button" data-id="${newComment.id}">Editar</button>
+            <button class="btn btn-danger" onclick="deleteComment('${
+              newComment.id
+            }')">Eliminar</button>
+            <button class="btn btn-primary edit-button" data-id="${
+              newComment.id
+            }">Editar</button>
         `;
       }
 

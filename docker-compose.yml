@@ -1,26 +1,29 @@
-version: '3'
+version: "3"
 services:
+  # Definición del servicio rethinkdb
   rethinkdb:
-    image: rethinkdb
+    image: rethinkdb # Utiliza la imagen oficial de RethinkDB
     ports:
-      - "8080:8080"
-      - "28015:28015"
-      - "29015:29015"
+      - "8080:8080" # Mapea el puerto 8080 del host al puerto 8080 del contenedor (para la interfaz web)
+      - "28015:28015" # Mapea el puerto 28015 del host al puerto 28015 del contenedor (para conexiones de cliente)
+      - "29015:29015" # Mapea el puerto 29015 del host al puerto 29015 del contenedor (para conexiones intra-cluster)
 
+  # Definición del servicio server
   server:
-    build: ./server
+    build: ./server # Construye la imagen del servidor usando el Dockerfile en el directorio ./server
     volumes:
-      - ./server:/usr/src/app
+      - ./server:/usr/src/app # Monta el directorio ./server del host en /usr/src/app en el contenedor
     ports:
       - "3000:3000"
       - "3001:3001"
     depends_on:
-      - rethinkdb
+      - rethinkdb # Especifica que el servicio server depende de rethinkdb y se iniciará después de rethinkdb
 
+  # Definición del servicio client
   client:
-    image: nginx:alpine
+    image: nginx:alpine # Utiliza la imagen de Nginx en la versión Alpine
     volumes:
-      - ./client:/usr/share/nginx/html:ro
+      - ./client:/usr/share/nginx/html:ro # Monta el directorio ./client del host en /usr/share/nginx/html en el contenedor, solo lectura
     ports:
-      - "8081:80"
+      - "8081:80" # Mapea el puerto 8081 del host al puerto 80 del contenedor (para el servidor web Nginx)
 

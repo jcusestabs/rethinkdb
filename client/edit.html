@@ -49,6 +49,7 @@
     </div>
 
     <script>
+<<<<<<< HEAD
       document.addEventListener("DOMContentLoaded", function () {
         const urlParams = new URLSearchParams(window.location.search);
         const commentId = urlParams.get("id");
@@ -108,6 +109,73 @@
               });
           });
       });
+=======
+        // Ejecutar cuando el DOM esté completamente cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            // Obtener el ID del comentario de los parámetros de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const commentId = urlParams.get('id');
+
+            // Fetch para obtener los comentarios del servidor
+            fetch(`http://localhost:3000/get?db=test&table=comentarios`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(comments => {
+                    // Buscar el comentario con el ID correspondiente
+                    const comment = comments.find(comment => comment.id === commentId);
+                    if (comment) {
+                        // Rellenar el formulario con los datos del comentario
+                        document.getElementById('editId').value = comment.id;
+                        document.getElementById('editName').value = comment.name;
+                        document.getElementById('editMessage').value = comment.message;
+                    } else {
+                        console.error('Comment not found');
+                    }
+                })
+                .catch(error => console.error('Failed to load comment:', error));
+
+            // Manejar el evento de envío del formulario
+            document.getElementById('editForm').addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevenir el envío predeterminado del formulario
+                const updatedName = document.getElementById('editName').value;
+                const updatedMessage = document.getElementById('editMessage').value;
+                const id = document.getElementById('editId').value;
+
+                // Enviar los datos actualizados al servidor
+                fetch(`http://localhost:3000/update`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        db: 'test',
+                        table: 'comentarios',
+                        data: { id, name: updatedName, message: updatedMessage }
+                    })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Success:', data);
+                    alert('Comment updated successfully!');
+                    // Redirigir a la página principal
+                    window.location.href = 'index.html';
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    alert('Failed to update comment');
+                });
+            });
+        });
+>>>>>>> d272f920db27231ce00b6dac66964031aaf8af9a
     </script>
   </body>
 </html>
