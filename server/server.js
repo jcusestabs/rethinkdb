@@ -7,6 +7,7 @@ app.use(express.json());
 app.use(cors());
 
 let connection = null;
+
 rethinkdb.connect({ host: 'rethinkdb', port: 28015 }, async (err, conn) => {
     if (err) throw err;
     connection = conn;
@@ -28,15 +29,15 @@ async function ensureDbAndTable(conn, dbName, tableName) {
 app.post('/insert', (req, res) => {
     const { db, table, data } = req.body;
     rethinkdb.db(db).table(table).insert(data)
-    .run(connection, (err, result) => {
-        if (err) {
-            console.error('Error inserting data:', err);
-            res.status(500).json({ error: err.message }); // Respond with error message
-        } else {
-            console.log('Data inserted successfully:', result);
-            res.status(200).json({ success: true }); // Respond with success message
-        }
-    });
+        .run(connection, (err, result) => {
+            if (err) {
+                console.error('Error inserting data:', err);
+                res.status(500).json({ error: err.message }); // Respond with error message
+            } else {
+                console.log('Data inserted successfully:', result);
+                res.status(200).json({ success: true }); // Respond with success message
+            }
+        });
 });
 
 app.get('/get', (req, res) => {
@@ -51,6 +52,7 @@ app.get('/get', (req, res) => {
         }
     });
 });
+
 app.delete('/delete/:id', (req, res) => {
     const { db, table } = req.query;
     const commentId = req.params.id; // Obtiene el ID del comentario desde el URL
@@ -73,7 +75,7 @@ app.delete('/delete/:id', (req, res) => {
 app.put('/update', (req, res) => {
     const { db, table, data } = req.body;
     const { id, ...updateData } = data;
-    
+
     rethinkdb.db(db).table(table).get(id).replace({ ...updateData, id })
         .run(connection, (err, result) => {
             if (err) {
@@ -84,26 +86,6 @@ app.put('/update', (req, res) => {
             } else {
                 console.log('Data updated successfully:', result);
                 res.status(200).json({ success: true });
-            }
-        });
-});
-
-
-// Updated route for updating comments
-app.put('/update', (req, res) => {
-    const { db, table, data } = req.body;
-    const { id, ...updateData } = data;
-
-    rethinkdb.db(db).table(table).get(id).update(updateData, { return_changes: true })
-        .run(connection, (err, result) => {
-            if (err) {
-                console.error('Error updating data:', err);
-                res.status(500).json({ error: err.message });
-            } else if (result.replaced === 0) {
-                res.status(404).json({ message: "Comment not found or no changes made." });
-            } else {
-                console.log('Data updated successfully:', result);
-                res.status(200).json({ success: true, changes: result.changes });
             }
         });
 });
