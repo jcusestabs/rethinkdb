@@ -87,14 +87,7 @@
           {
             method: "DELETE",
           }
-        )
-          .then((response) => response.json())
-          .then((data) => {
-            console.log("Deleted comment:", data);
-            // Recargar los comentarios después de eliminar uno
-            loadComments();
-          })
-          .catch((error) => console.error("Error deleting comment:", error));
+        ).catch((error) => console.error("Error deleting comment:", error));
       }
 
       function loadComments() {
@@ -110,6 +103,7 @@
       function addCommentToList(comment) {
         const commentsList = document.getElementById("comments-list");
         const commentElement = document.createElement("li");
+        commentElement.setAttribute('id', comment.date);
         commentElement.classList.add("comment-box");
         commentElement.innerHTML = `
                 <div class="comment-name">${comment.name}</div>
@@ -132,6 +126,21 @@
           const commentId = this.getAttribute("data-id");
           editComment(commentId); // Call the editComment function when the edit button is clicked
         });
+      }
+
+      function deleteCommentFromList(commentId) {
+        const commentElement = document.getElementById(commentId);
+        commentElement.remove();
+      }
+
+      function updateCommentOnList(oldCommentId, newComment) {
+        document.getElementById(oldCommentId).innerHTML = `
+            <div class="comment-name">${newComment.name}</div>
+            <div class="comment-date">${new Date(newComment.date).toLocaleString()}</div>
+            <div class="comment-message">${newComment.message}</div>
+            <button class="btn btn-danger" onclick="deleteComment('${newComment.id}')">Eliminar</button>
+            <button class="btn btn-primary edit-button" data-id="${newComment.id}">Editar</button>
+        `;
       }
 
       function editComment(commentId) {
@@ -157,9 +166,6 @@
           .then((data) => {
             if (data.error) {
               alert("Failed to insert data: " + data.error); // Mostrar el mensaje de error recibido del servidor
-            } else {
-            //   addCommentToList({ name, message, date: new Date() });
-              //   location.reload(); // Recargar la página después de la actualización
             }
           })
           .catch((error) => {
